@@ -89,10 +89,11 @@ Return non-nil if the minor mode is enabled."
 
 (defun simple-sticky-header--lisp ()
   "Return the first line of the top level form that extends beyond the window start."
-  (save-excursion
-    (goto-char (window-start))
-    (beginning-of-defun)
-    (buffer-substring (point) (point-at-eol))))
+  (when (> (window-start) 1)
+    (save-excursion
+      (goto-char (window-start))
+      (beginning-of-defun)
+      (buffer-substring (point) (point-at-eol)))))
 
 ;;;; Footer
 
