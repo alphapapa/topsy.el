@@ -93,6 +93,7 @@ Return non-nil if the minor mode is enabled."
     (save-excursion
       (goto-char (window-start))
       (beginning-of-defun)
+      (font-lock-ensure (point) (point-at-eol))
       (buffer-substring (point) (point-at-eol)))))
 
 ;;;; Footer
