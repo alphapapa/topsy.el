@@ -77,7 +77,7 @@ Return non-nil if the minor mode is enabled."
         (setf simple-sticky-header-fn (alist-get major-mode simple-sticky-header-major-mode-map)
               header-line-format 'simple-sticky-header-header-line-format))
     ;; Disable mode
-    (when (eq header-line-format simple-sticky-header-header-line-format)
+    (when (eq header-line-format 'simple-sticky-header-header-line-format)
       ;; Restore previous buffer local value of header line format if
       ;; the current one is the sticky func one.
       (kill-local-variable 'header-line-format)
