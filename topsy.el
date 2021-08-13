@@ -1,4 +1,4 @@
-;;; simple-sticky-header.el --- Simple sticky header lines  -*- lexical-binding: t; -*-
+;;; topsy.el --- Simple sticky header lines for many modes  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020  Adam Porter
 
@@ -34,26 +34,26 @@
 
 ;;;; Variables
 
-(defconst simple-sticky-header-header-line-format
+(defconst topsy-header-line-format
   '(:eval (list (propertize " " 'display '((space :align-to 0)))
-                (funcall simple-sticky-header-fn)))
-  "The header line format used by `simple-sticky-header-mode'.")
-(put 'simple-sticky-header-header-line-format 'risky-local-variable t)
+                (funcall topsy-fn)))
+  "The header line format used by `topsy-mode'.")
+(put 'topsy-header-line-format 'risky-local-variable t)
 
-(defvar-local simple-sticky-header-old-hlf nil
+(defvar-local topsy-old-hlf nil
   "Preserves the old value of `header-line-format'.")
 
-(defvar-local simple-sticky-header-fn nil
+(defvar-local topsy-fn nil
   "Function that returns the header in a buffer.")
 
 ;;;; Customization
 
-(defgroup simple-sticky-header nil
-  "Options for `simple-sticky-header'."
+(defgroup topsy nil
+  "Options for `topsy'."
   :group 'convenience)
 
-(defcustom simple-sticky-header-major-mode-map
-  '((emacs-lisp-mode . simple-sticky-header--lisp))
+(defcustom topsy-major-mode-map
+  '((emacs-lisp-mode . topsy--lisp))
   "Alist mapping major modes to functions.
 Each function provides the sticky header string in a mode."
   :type '(alist :key-type symbol
@@ -62,32 +62,32 @@ Each function provides the sticky header string in a mode."
 ;;;; Commands
 
 ;;;###autoload
-(define-minor-mode simple-sticky-header-mode
+(define-minor-mode topsy-mode
   "Minor mode to show a simple sticky header.
 With prefix argument ARG, turn on if positive, otherwise off.
 Return non-nil if the minor mode is enabled."
-  :group 'simple-sticky-header
-  (if simple-sticky-header-mode
+  :group 'topsy
+  (if topsy-mode
       (progn
         (when (and (local-variable-p 'header-line-format (current-buffer))
-                   (not (eq header-line-format simple-sticky-header-header-line-format)))
+                   (not (eq header-line-format topsy-header-line-format)))
           ;; Save previous buffer local value of header line format.
-          (setf simple-sticky-header-old-hlf header-line-format))
+          (setf topsy-old-hlf header-line-format))
         ;; Enable the mode
-        (setf simple-sticky-header-fn (alist-get major-mode simple-sticky-header-major-mode-map)
-              header-line-format 'simple-sticky-header-header-line-format))
+        (setf topsy-fn (alist-get major-mode topsy-major-mode-map)
+              header-line-format 'topsy-header-line-format))
     ;; Disable mode
-    (when (eq header-line-format 'simple-sticky-header-header-line-format)
+    (when (eq header-line-format 'topsy-header-line-format)
       ;; Restore previous buffer local value of header line format if
       ;; the current one is the sticky func one.
       (kill-local-variable 'header-line-format)
-      (when simple-sticky-header-old-hlf
-        (setf header-line-format simple-sticky-header-old-hlf
-              simple-sticky-header-old-hlf nil)))))
+      (when topsy-old-hlf
+        (setf header-line-format topsy-old-hlf
+              topsy-old-hlf nil)))))
 
 ;;;; Functions
 
-(defun simple-sticky-header--lisp ()
+(defun topsy--lisp ()
   "Return the first line of the top level form that extends beyond the window start."
   (when (> (window-start) 1)
     (save-excursion
@@ -98,6 +98,6 @@ Return non-nil if the minor mode is enabled."
 
 ;;;; Footer
 
-(provide 'simple-sticky-header)
+(provide 'topsy)
 
-;;; simple-sticky-header.el ends here
+;;; topsy.el ends here
