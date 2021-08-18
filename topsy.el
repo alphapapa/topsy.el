@@ -1,8 +1,10 @@
-;;; topsy.el --- Simple sticky header lines for many modes  -*- lexical-binding: t; -*-
+;;; topsy.el --- Simple sticky header  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Adam Porter
+;; Copyright (C) 2021  Adam Porter
 
 ;; Author: Adam Porter <adam@alphapapa.net>
+;; URL: https://github.com/alphapapa/topsy.el
+;; Version: 0.1-pre
 ;; Keywords: convenience
 
 ;;;; License:
@@ -22,10 +24,14 @@
 
 ;;; Commentary:
 
-;; Display a sticky header at the top of a window that shows useful
-;; information, like which top-level Lisp form extends beyond the top
-;; of the window.  Intended as a simple alternative to
-;; `semantic-stickyfunc-mode`.
+;; This library shows a sticky header at the top of the window.  The
+;; header shows which definition the top line of the window is within.
+;; Intended as a simple alternative to `semantic-stickyfunc-mode`.
+
+;; Mode-specific functions may be added to `topsy-mode-functions'.
+
+;; NOTE: For Org mode buffers, please use org-sticky-header:
+;; <https://github.com/alphapapa/org-sticky-header>.
 
 ;;; Code:
 
@@ -49,13 +55,20 @@
 ;;;; Customization
 
 (defgroup topsy nil
-  "Options for `topsy'."
+  "Show a sticky header at the top of the window.
+The header shows which definition the top line of the window is
+within.  Intended as a simple alternative to
+`semantic-stickyfunc-mode`."
   :group 'convenience)
 
-(defcustom topsy-major-mode-map
-  '((emacs-lisp-mode . topsy--lisp))
+(defcustom topsy-mode-functions
+  '((emacs-lisp-mode . topsy--beginning-of-defun)
+    (org-mode . (lambda ()
+                  "topsy: Please use package `org-sticky-header' for Org mode"))
+    (nil . topsy--beginning-of-defun))
   "Alist mapping major modes to functions.
-Each function provides the sticky header string in a mode."
+Each function provides the sticky header string in a mode.  The
+nil key defines the default function."
   :type '(alist :key-type symbol
                 :value-type function))
 
@@ -74,7 +87,8 @@ Return non-nil if the minor mode is enabled."
           ;; Save previous buffer local value of header line format.
           (setf topsy-old-hlf header-line-format))
         ;; Enable the mode
-        (setf topsy-fn (alist-get major-mode topsy-major-mode-map)
+        (setf topsy-fn (or (alist-get major-mode topsy-mode-functions)
+                           (alist-get nil topsy-mode-functions))
               header-line-format 'topsy-header-line-format))
     ;; Disable mode
     (when (eq header-line-format 'topsy-header-line-format)
@@ -87,8 +101,8 @@ Return non-nil if the minor mode is enabled."
 
 ;;;; Functions
 
-(defun topsy--lisp ()
-  "Return the first line of the top level form that extends beyond the window start."
+(defun topsy--beginning-of-defun ()
+  "Return the line moved to by `beginning-of-defun'."
   (when (> (window-start) 1)
     (save-excursion
       (goto-char (window-start))

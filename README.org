@@ -1,0 +1,111 @@
+#+TITLE: topsy.el
+
+#+PROPERTY: LOGGING nil
+
+# Note: This readme works with the org-make-toc <https://github.com/alphapapa/org-make-toc> package, which automatically updates the table of contents.
+
+#+HTML: <img src="images/mascot.png" align="right">
+
+# [[https://melpa.org/#/package-name][file:https://melpa.org/packages/topsy-badge.svg]] [[https://stable.melpa.org/#/package-name][file:https://stable.melpa.org/packages/topsy-badge.svg]]
+
+This library shows a sticky header at the top of the window.  The header shows which definition the top line of the window is within.  It's intended as a simple alternative to ~semantic-stickyfunc-mode~.
+
+Mode-specific functions may be added to ~topsy-mode-functions~.
+
+*NOTE:* For Org mode buffers, please use [[https://github.com/alphapapa/org-sticky-header][org-sticky-header]].
+
+* Screenshots
+
+#+ATTR_HTML: :clear right
+[[images/screenshot.png]]
+
+* Contents                                                         :noexport:
+:PROPERTIES:
+:TOC:      :include siblings
+:END:
+:CONTENTS:
+- [[#installation][Installation]]
+- [[#usage][Usage]]
+- [[#changelog][Changelog]]
+- [[#development][Development]]
+:END:
+
+* Installation
+:PROPERTIES:
+:TOC:      :depth 0
+:END:
+
+** MELPA
+
+This library is not on MELPA yet.
+
+# If you installed from MELPA, you're done.  Just run one of the commands below.
+
+** Quelpa
+
+The recommended way to install is with [[https://github.com/quelpa/quelpa-use-package][quelpa-use-package]], like this:
+
+#+BEGIN_SRC elisp
+  ;; Install and load `quelpa-use-package'.
+  (package-install 'quelpa-use-package)
+  (require 'quelpa-use-package)
+
+  (use-package topsy
+    :quelpa (topsy :fetcher github :repo "alphapapa/topsy.el")
+    :hook (prog-mode . topsy-mode))
+#+END_SRC
+
+** Manual
+
+Put =topsy.el= in your ~load-path~, then:
+
+#+BEGIN_SRC elisp
+  (require 'topsy)
+
+  (add-hook 'prog-mode-hook #'topsy-mode)
+#+END_SRC
+
+* Usage
+:PROPERTIES:
+:TOC:      :depth 0
+:END:
+
+Run command ~topsy-mode~.  You may add it to appropriate hooks, such as ~prog-mode-hook~.
+
+** Tips
+
++ You can customize settings in the =topsy= group.
+
+* Changelog
+:PROPERTIES:
+:TOC:      :depth 0
+:END:
+
+** 0.1-pre
+
+Not yet tagged.
+
+# * Credits
+# 
+#   This package would not have been possible without the following packages: [[https://example.com/foo.el][foo]] which showed me how to bifurcate, and [[https://example.com/bar.el][bar]], which takes care of flanges.
+
+* Development
+
+Bug reports, feature requests, suggestions — /oh my/!
+
+There is currently only one function in ~topsy-mode-functions~, one which returns the line that ~beginning-of-defun~ goes to.  It should be useful in many major modes, but suggestions for additional, mode-specific functions are welcome.
+
+* License
+:PROPERTIES:
+:TOC:      :ignore (this)
+:END:
+
+GPLv3
+
+# Local Variables:
+# eval: (require 'org-make-toc)
+# before-save-hook: org-make-toc
+# org-export-with-properties: ()
+# org-export-with-title: t
+# End:
+
