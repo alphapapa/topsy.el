@@ -5,6 +5,7 @@
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: https://github.com/alphapapa/topsy.el
 ;; Version: 0.1-pre
+;; Package-Requires: ((emacs "26.3"))
 ;; Keywords: convenience
 
 ;;;; License:
