@@ -148,11 +148,11 @@ the defun but not when showing the previous line."
                 (add-face-text-property 0 (length line) 'topsy-highlight t line)
                 line))))
         (progn (goto-char (window-start))
-               (let ((bol (point-at-bol 0))
-                     (eol (point-at-eol 0)))
-                 (when (< eol (window-start))
-                   (font-lock-ensure bol eol)
-                   (buffer-substring bol eol)))))))
+               (vertical-motion -1)
+               (let ((bol (point))
+                     (eol (1- (window-start))))
+                 (font-lock-ensure bol eol)
+                 (buffer-substring bol eol))))))
 
 (defun topsy--magit-section ()
   "Return the header line in a `magit-section-mode' buffer."
