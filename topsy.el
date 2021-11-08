@@ -39,6 +39,7 @@
 ;;;; Requirements
 
 (require 'subr-x)
+(require 'face-remap)
 
 ;;;; Variables
 
@@ -53,6 +54,9 @@
 
 (defvar-local topsy-fn nil
   "Function that returns the header in a buffer.")
+
+(defvar-local topsy--face-remap nil
+  "Cookie returned by `face-remap-add-relative'.")
 
 ;;;; Customization
 
@@ -75,6 +79,21 @@ nil key defines the default function."
   :type '(alist :key-type symbol
                 :value-type function))
 
+(defface topsy '((t :inherit default))
+  "Face with which to display sticky header.
+To match the appearance of the text in the buffer, the `default`
+face should be included in the :inherit specification.
+Otherwise, unspecified face attributes will be inherited from the
+`header-line` face.
+
+To use the header-line, remove the :inherit attribute.")
+
+(defface topsy-highlight '((t :weight bold :underline t))
+  "Face for sticky header when it is showing the first line of a defun.
+This face will be used only when a defun is partially visible and
+the sticky header is showing its first line.  The faces of the
+buffer text being shown have higher priority than this face.")
+
 ;;;; Commands
 
 ;;;###autoload
@@ -92,7 +111,9 @@ Return non-nil if the minor mode is enabled."
         ;; Enable the mode
         (setf topsy-fn (or (alist-get major-mode topsy-mode-functions)
                            (alist-get nil topsy-mode-functions))
-              header-line-format 'topsy-header-line-format))
+              header-line-format 'topsy-header-line-format)
+        (setq topsy--face-remap
+              (face-remap-add-relative 'header-line 'topsy)))
     ;; Disable mode
     (when (eq header-line-format 'topsy-header-line-format)
       ;; Restore previous buffer local value of header line format if
@@ -100,18 +121,38 @@ Return non-nil if the minor mode is enabled."
       (kill-local-variable 'header-line-format)
       (when topsy-old-hlf
         (setf header-line-format topsy-old-hlf
-              topsy-old-hlf nil)))))
+              topsy-old-hlf nil)))
+    (face-remap-remove-relative topsy--face-remap)))
 
 ;;;; Functions
 
 (defun topsy--beginning-of-defun ()
-  "Return the line moved to by `beginning-of-defun'."
-  (when (> (window-start) 1)
-    (save-excursion
-      (goto-char (window-start))
-      (beginning-of-defun)
-      (font-lock-ensure (point) (point-at-eol))
-      (buffer-substring (point) (point-at-eol)))))
+  "Return the first line of a partially visible defun.
+The beginning and end of the defun are identified by
+`beginning-of-defun' and `end-of-defun', respectively.
+
+If no defun is partially visible, return the first line above the
+top of the window.  Buffer narrowing is ignored when looking for
+the defun but not when showing the previous line."
+  (save-excursion
+    (or (save-restriction
+          (widen)
+          (goto-char (window-start))
+          (let ((bod (ignore-errors (beginning-of-defun) (point)))
+                (eol (point-at-eol))
+                (eod (ignore-errors (end-of-defun) (point))))
+            (when (and bod (< bod (window-start))
+                       (or (not eod) (>= eod (window-start))))
+              (font-lock-ensure bod eol)
+              (let ((line (buffer-substring bod eol)))
+                (add-face-text-property 0 (length line) 'topsy-highlight t line)
+                line))))
+        (progn (goto-char (window-start))
+               (let ((bol (point-at-bol 0))
+                     (eol (point-at-eol 0)))
+                 (when (< eol (window-start))
+                   (font-lock-ensure bol eol)
+                   (buffer-substring bol eol)))))))
 
 (defun topsy--magit-section ()
   "Return the header line in a `magit-section-mode' buffer."
