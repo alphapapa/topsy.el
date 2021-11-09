@@ -45,7 +45,7 @@
 
 (defconst topsy-header-line-format
   '(:eval (list (propertize " " 'display '((space :align-to 0)))
-                (funcall topsy-fn)))
+                (topsy--header-string)))
   "The header line format used by `topsy-mode'.")
 (put 'topsy-header-line-format 'risky-local-variable t)
 
@@ -94,6 +94,11 @@ This face will be used only when a defun is partially visible and
 the sticky header is showing its first line.  The faces of the
 buffer text being shown have higher priority than this face.")
 
+(defcustom topsy-previous-line-fallback t
+  "If no sticky header string is found, show the line above the window start."
+  :type '(choice (const :tag "Show previous line" t)
+                 (const :tag "Leave header blank" nil)))
+
 ;;;; Commands
 
 ;;;###autoload
@@ -126,33 +131,41 @@ Return non-nil if the minor mode is enabled."
 
 ;;;; Functions
 
+(defun topsy--header-string ()
+  "Return string found by `topsy-fn' or line above window start.
+When `topsy-fn' returns a string, it is propertized with the
+'topsy-highlight face.  When its return value is nil, return the
+string above the top of the window."
+  (or (when-let ((header (and topsy-fn (funcall topsy-fn))))
+        (add-face-text-property 0 (length header) 'topsy-highlight t header)
+        header)
+      (when topsy-previous-line-fallback
+        (save-excursion
+          (goto-char (window-start))
+          (vertical-motion -1)
+          (let ((bol (point))
+                (eol (1- (window-start))))
+            (font-lock-ensure bol eol)
+            (buffer-substring bol eol))))))
+
 (defun topsy--beginning-of-defun ()
   "Return the first line of a partially visible defun.
 The beginning and end of the defun are identified by
-`beginning-of-defun' and `end-of-defun', respectively.
+`beginning-of-defun' and `end-of-defun', respectively, with
+buffer narrowing is ignored
 
-If no defun is partially visible, return the first line above the
-top of the window.  Buffer narrowing is ignored when looking for
-the defun but not when showing the previous line."
+Return nil if no defun is partially visible."
   (save-excursion
-    (or (save-restriction
-          (widen)
-          (goto-char (window-start))
-          (let ((bod (ignore-errors (beginning-of-defun) (point)))
-                (eol (point-at-eol))
-                (eod (ignore-errors (end-of-defun) (point))))
-            (when (and bod (< bod (window-start))
-                       (or (not eod) (>= eod (window-start))))
-              (font-lock-ensure bod eol)
-              (let ((line (buffer-substring bod eol)))
-                (add-face-text-property 0 (length line) 'topsy-highlight t line)
-                line))))
-        (progn (goto-char (window-start))
-               (vertical-motion -1)
-               (let ((bol (point))
-                     (eol (1- (window-start))))
-                 (font-lock-ensure bol eol)
-                 (buffer-substring bol eol))))))
+    (save-restriction
+      (widen)
+      (goto-char (window-start))
+      (let ((bod (ignore-errors (beginning-of-defun) (point)))
+            (eol (point-at-eol))
+            (eod (ignore-errors (end-of-defun) (point))))
+        (when (and bod (< bod (window-start))
+                   (or (not eod) (>= eod (window-start))))
+          (font-lock-ensure bod eol)
+          (buffer-substring bod eol))))))
 
 (defun topsy--magit-section ()
   "Return the header line in a `magit-section-mode' buffer."
