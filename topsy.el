@@ -145,8 +145,9 @@ string above the top of the window."
           (vertical-motion -1)
           (let ((bol (point))
                 (eol (1- (window-start))))
-            (font-lock-ensure bol eol)
-            (buffer-substring bol eol))))))
+            (when (< bol eol)
+              (font-lock-ensure bol eol)
+              (buffer-substring bol eol)))))))
 
 (defun topsy--beginning-of-defun ()
   "Return the first line of a partially visible defun.
