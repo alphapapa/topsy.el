@@ -37,9 +37,7 @@ Mode-specific functions may be added to ~topsy-mode-functions~.
 
 ** MELPA
 
-This library is not on MELPA yet.
-
-# If you installed from MELPA, you're done.  Just run one of the commands below.
+If you installed from MELPA, you're done.  Just run one of the commands below.
 
 ** Quelpa
 
