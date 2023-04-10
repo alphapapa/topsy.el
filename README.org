@@ -80,7 +80,7 @@ You may prefer for the header line to act just like another line of
 text when the ~window-start~ is not inside a list:
 
 #+begin_src emacs-lisp
-  (defun my/topsy-elisp-header-line ()
+  (defun my/topsy-lisp-header-line ()
     "Return the first line of the top-level list containing window-start.
   If window-start is not inside a list, return the line above window-start."
     (when (> (window-start) 1)
@@ -97,7 +97,7 @@ text when the ~window-start~ is not inside a list:
           (font-lock-ensure (point) (point-at-eol))
           (buffer-substring (point) (point-at-eol))))))
 
-  (cl-pushnew '(emacs-lisp-mode . my/topsy-elisp-header-line) topsy-mode-functions)
+  (cl-pushnew '(lisp-data-mode . my/topsy-lisp-header-line) topsy-mode-functions)
 #+end_src
 
 ** Tips
