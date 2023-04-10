@@ -90,7 +90,7 @@ Return non-nil if the minor mode is enabled."
           ;; Save previous buffer local value of header line format.
           (setf topsy-old-hlf header-line-format))
         ;; Enable the mode
-        (setf topsy-fn (or (alist-get major-mode topsy-mode-functions)
+        (setf topsy-fn (or (cl-find-if #'derived-mode-p topsy-mode-functions :key #'car)
                            (alist-get nil topsy-mode-functions))
               header-line-format 'topsy-header-line-format))
     ;; Disable mode
