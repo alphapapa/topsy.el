@@ -50,7 +50,9 @@ The recommended way to install is with [[https://github.com/quelpa/quelpa-use-pa
 
   (use-package topsy
     :quelpa (topsy :fetcher github :repo "alphapapa/topsy.el")
-    :hook (prog-mode . topsy-mode))
+    :hook
+    (prog-mode . topsy-mode)
+    (magit-section-mode . topsy-mode))
 #+END_SRC
 
 ** Manual
@@ -61,6 +63,7 @@ Put =topsy.el= in your ~load-path~, then:
   (require 'topsy)
 
   (add-hook 'prog-mode-hook #'topsy-mode)
+  (add-hook 'magit-section-mode-hook #'topsy-mode)
 #+END_SRC
 
 * Usage
@@ -68,7 +71,7 @@ Put =topsy.el= in your ~load-path~, then:
 :TOC:      :depth 0
 :END:
 
-Run command ~topsy-mode~.  You may add it to appropriate hooks, such as ~prog-mode-hook~.
+Run command ~topsy-mode~.  You may add it to appropriate hooks, such as ~prog-mode-hook~ and ~magit-section-mode-hook~.
 
 ** Tips
 
