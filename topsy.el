@@ -102,9 +102,9 @@ Return non-nil if the minor mode is enabled."
           ;; Save previous buffer local value of header line format.
           (setf topsy-old-hlf header-line-format))
         ;; Enable the mode
-        (setf topsy-fn (or (alist-get major-mode topsy-mode-functions)
-                           (alist-get nil topsy-mode-functions))
-              header-line-format 'topsy-header-line-format))
+        (let ((mode (car (cl-find-if (lambda (cell) (derived-mode-p (car cell))) topsy-mode-functions))))
+          (setf topsy-fn (alist-get mode topsy-mode-functions)
+                header-line-format 'topsy-header-line-format)))
     ;; Disable mode
     (when (eq header-line-format 'topsy-header-line-format)
       ;; Restore previous buffer local value of header line format if
