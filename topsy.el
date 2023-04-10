@@ -65,19 +65,7 @@ within.  Intended as a simple alternative to
 
 (defcustom topsy-mode-functions
   '((emacs-lisp-mode . topsy--beginning-of-defun)
-    (magit-section-mode . (lambda ()
-                            (save-excursion
-                              (goto-char (window-start))
-                              (when-let (strings
-					 (cl-loop while (/= (point) (progn
-                                                                      (magit-section-up)
-                                                                      (point)))
-						  for section = (magit-current-section)
-						  collect (string-trim
-							   (buffer-substring
-							    (oref section start)
-							    (oref section content)))))
-				(string-join strings " « ")))))
+    (magit-section-mode . topsy--magit-section)
     (org-mode . (lambda ()
                   "topsy: Please use package `org-sticky-header' for Org mode"))
     (nil . topsy--beginning-of-defun))
@@ -124,6 +112,21 @@ Return non-nil if the minor mode is enabled."
       (beginning-of-defun)
       (font-lock-ensure (point) (point-at-eol))
       (buffer-substring (point) (point-at-eol)))))
+
+(defun topsy--magit-section ()
+  "Return `magit-section' headings above section at window-start."
+  (save-excursion
+    (goto-char (window-start))
+    (when-let (strings
+	       (cl-loop while (/= (point) (progn
+                                            (magit-section-up)
+                                            (point)))
+			for section = (magit-current-section)
+			collect (string-trim
+				 (buffer-substring
+				  (oref section start)
+				  (oref section content)))))
+      (string-join strings " « "))))
 
 ;;;; Footer
 
