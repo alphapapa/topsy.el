@@ -52,14 +52,14 @@
 
 (defconst topsy-header-line-format
   '(:eval (list (propertize " " 'display '((space :align-to 0)))
-                (funcall topsy-fn)))
+                (topsy--header-string)))
   "The header line format used by `topsy-mode'.")
 (put 'topsy-header-line-format 'risky-local-variable t)
 
 (defvar-local topsy-old-hlf nil
   "Preserves the old value of `header-line-format'.")
 
-(defvar-local topsy-fn nil
+(defvar-local topsy-fn #'ignore
   "Function that returns the header in a buffer.")
 
 ;;;; Customization
@@ -82,6 +82,11 @@ Each function provides the sticky header string in a mode.  The
 nil key defines the default function."
   :type '(alist :key-type symbol
                 :value-type function))
+
+(defcustom topsy-previous-line-fallback t
+  "Show line above the window start instead of blank header."
+  :type '(choice (const :tag "Show previous line" t)
+                 (const :tag "Leave header blank" nil)))
 
 ;;;; Commands
 
@@ -111,6 +116,20 @@ Return non-nil if the minor mode is enabled."
               topsy-old-hlf nil)))))
 
 ;;;; Functions
+
+(defun topsy--header-string ()
+  "Return string found by `topsy-fn' or line above window start."
+  (or (funcall topsy-fn)
+      (when topsy-previous-line-fallback
+        ;; Return the line preceding window-start
+        (save-excursion
+          (goto-char (window-start))
+          (vertical-motion -1)
+          (let ((bol (point))
+                (eol (1- (window-start))))
+            (when (< bol eol)
+              (font-lock-ensure bol eol)
+              (buffer-substring bol eol)))))))
 
 (defun topsy--beginning-of-defun ()
   "Return the line moved to by `beginning-of-defun'."
