@@ -83,6 +83,10 @@ nil key defines the default function."
   :type '(alist :key-type symbol
                 :value-type function))
 
+(defcustom topsy-defun-ignore-narrowing nil
+  "Widen buffer before finding beginning of defun."
+  :type 'boolean)
+
 ;;;; Commands
 
 ;;;###autoload
@@ -113,13 +117,22 @@ Return non-nil if the minor mode is enabled."
 ;;;; Functions
 
 (defun topsy--beginning-of-defun ()
-  "Return the line moved to by `beginning-of-defun'."
+  "Return the first line of the defun at the top of the window.
+
+Return nil when the defun begins on the top line of the window.
+Find the beginning of the defun by calling `beginning-of-defun'.
+Ignore buffer narrowing if `topsy-defun-ignore-narrowing' is
+non-nil."
   (when (> (window-start) 1)
     (save-excursion
-      (goto-char (window-start))
-      (beginning-of-defun)
-      (font-lock-ensure (point) (pos-eol))
-      (buffer-substring (point) (pos-eol)))))
+      (save-restriction
+        (when topsy-defun-ignore-narrowing
+          (widen))
+        (goto-char (window-start))
+        (let ((bod (ignore-errors (beginning-of-defun) (point)))
+              (eol (pos-eol)))
+          (font-lock-ensure bod eol)
+          (buffer-substring bod eol))))))
 
 (declare-function magit-current-section "magit-section" nil t)
 (declare-function magit-section-ident "magit-section" nil t)
