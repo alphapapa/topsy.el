@@ -39,6 +39,7 @@
 ;;;; Requirements
 
 (require 'subr-x)
+(require 'face-remap)
 
 ;;;; Variables
 
@@ -53,6 +54,9 @@
 
 (defvar-local topsy-fn nil
   "Function that returns the header in a buffer.")
+
+(defvar-local topsy--face-remap nil
+  "Cookie returned by `face-remap-add-relative'.")
 
 ;;;; Customization
 
@@ -75,6 +79,15 @@ nil key defines the default function."
   :type '(alist :key-type symbol
                 :value-type function))
 
+(defface topsy-header-line '((t :inherit default))
+  "Topsy header line face.
+
+The default specification overrides the `header-line' face, which
+is often not appropriate for a sticky header.  To use the
+`header-line' face instead, remove the `:inherit' attribute:
+
+\(custom-set-faces \\='(topsy-header-line ((t :inherit nil))))")
+
 ;;;; Commands
 
 ;;;###autoload
@@ -92,7 +105,9 @@ Return non-nil if the minor mode is enabled."
         ;; Enable the mode
         (setf topsy-fn (or (alist-get major-mode topsy-mode-functions)
                            (alist-get nil topsy-mode-functions))
-              header-line-format 'topsy-header-line-format))
+              header-line-format 'topsy-header-line-format
+              topsy--face-remap (face-remap-add-relative 'header-line
+                                                         'topsy-header-line)))
     ;; Disable mode
     (when (eq header-line-format 'topsy-header-line-format)
       ;; Restore previous buffer local value of header line format if
@@ -100,7 +115,8 @@ Return non-nil if the minor mode is enabled."
       (kill-local-variable 'header-line-format)
       (when topsy-old-hlf
         (setf header-line-format topsy-old-hlf
-              topsy-old-hlf nil)))))
+              topsy-old-hlf nil)))
+    (face-remap-remove-relative topsy--face-remap)))
 
 ;;;; Functions
 
