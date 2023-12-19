@@ -73,6 +73,32 @@ Put =topsy.el= in your ~load-path~, then:
 
 Run command ~topsy-mode~.  You may add it to appropriate hooks, such as ~prog-mode-hook~ and ~magit-section-mode-hook~.
 
+** Alternative topsy functions
+
+You may prefer for the header line to act just like another line of
+text when the ~window-start~ is not inside a list:
+
+#+begin_src emacs-lisp
+  (defun my/topsy-lisp-header-line ()
+    "Return the first line of the top-level list containing window-start.
+  If window-start is not inside a list, return the line above window-start."
+    (when (> (window-start) 1)
+      (save-excursion
+        (let ((window-start (window-start))
+              (beginning-of-defun (progn
+                                    (goto-char (window-start))
+                                    (condition-case nil
+                                        (backward-up-list most-positive-fixnum t t)
+                                      (error nil))
+                                    (point))))
+          (when (= window-start beginning-of-defun)
+            (forward-line -1))
+          (font-lock-ensure (point) (point-at-eol))
+          (buffer-substring (point) (point-at-eol))))))
+
+  (cl-pushnew '(lisp-data-mode . my/topsy-lisp-header-line) topsy-mode-functions)
+#+end_src
+
 ** Tips
 
 + You can customize settings in the =topsy= group.
