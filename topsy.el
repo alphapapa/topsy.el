@@ -83,6 +83,18 @@ nil key defines the default function."
   :type '(alist :key-type symbol
                 :value-type function))
 
+(defcustom topsy-defun-ignore-narrowing nil
+  "Widen buffer before finding beginning of defun."
+  :type 'boolean)
+
+(defcustom topsy-defun-before-end nil
+  "Only show beginning of defun if it is partially visible.
+
+If the top line of the window is past the end of the defun, do
+not show the beginning of the defun.  Call `end-of-defun' to find
+the end of the defun."
+  :type 'boolean)
+
 ;;;; Commands
 
 ;;;###autoload
@@ -113,13 +125,27 @@ Return non-nil if the minor mode is enabled."
 ;;;; Functions
 
 (defun topsy--beginning-of-defun ()
-  "Return the line moved to by `beginning-of-defun'."
-  (when (> (window-start) 1)
-    (save-excursion
+  "Return the first line of the defun at the top of the window.
+
+Return nil when the defun begins on the top line of the window,
+or when `topsy-defun-before-end' is non-nil and the defun ends
+above the window.  Find the beginning of the defun by calling
+`beginning-of-defun' and its end by calling `end-of-defun', but
+only if `topsy-defun-before-end' is non-nil.  Ignore buffer
+narrowing if `topsy-defun-ignore-narrowing' is non-nil."
+  (save-excursion
+    (save-restriction
+      (when topsy-defun-ignore-narrowing
+        (widen))
       (goto-char (window-start))
-      (beginning-of-defun)
-      (font-lock-ensure (point) (pos-eol))
-      (buffer-substring (point) (pos-eol)))))
+      (let ((bod (ignore-errors (beginning-of-defun) (point)))
+            (eol (pos-eol))
+            (eod (when topsy-defun-before-end
+                   (ignore-errors (end-of-defun) (point)))))
+        (when (and bod (< bod (window-start))
+                   (or (not eod) (>= eod (window-start))))
+          (font-lock-ensure bod eol)
+          (buffer-substring bod eol))))))
 
 (declare-function magit-current-section "magit-section" nil t)
 (declare-function magit-section-ident "magit-section" nil t)
